@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+		">
+
+
+	<context:component-scan base-package="com.bng.ussd" />
+	<mvc:annotation-driven />
+	<context:annotation-config />
+
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+	<context:property-placeholder location="file:/software/config/ussd/connection.properties" />
+
+	<task:annotation-driven executor="taskExecutor" />
+
+	<bean id="taskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="10" />
+		<property name="queueCapacity" value="10" />
+		<property name="keepAliveSeconds" value="120" />
+	</bean>
+
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+	</bean>
+
+	<bean id="ussdDaoImpl" class="com.bng.ussd.daoImpl.UssdDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<bean id="prop" class="java.util.Properties"></bean>
+	<bean id="getmessagevalue" class="com.bng.ussd.util.GetMessageValue"></bean>
+	<bean id="sendCdr" class="com.bng.ussd.cdr.SendCdr"></bean>
+    
+	<bean id="cdrSender" class="com.bng.ussd.queue.CdrQueueSender">
+	<property name="qName" value="${ussd.cdr.queue}"></property>
+	</bean>
+
+	<bean id="specialcharacterescapehandler" class="com.bng.ussd.wrapper.SpecialCharacterEscapeHandler"></bean>
+	<bean id="requestxml" class="com.bng.ussd.wrapper.RequestXml"></bean>
+	<bean id="response" class="com.bng.ussd.wrapper.Response"></bean>
+	<bean id="config" class="com.bng.ussd.wrapper.UssdConfiguration"></bean>
+	<bean id="soapResponse" class="com.bng.ussd.wrapper.SoapResponse">
+		<property name="spId" value="${spId}" />
+		<property name="serviceId" value="${serviceId}"></property>
+		<property name="shortCode" value="${shortCode}"></property>
+	</bean>
+	<bean id="service" class="com.bng.ussd.util.Service" init-method="initConfig">
+		<property name="timeout" value="${jedis.timeout}"></property>
+		<property name="cdrPath" value="${cdr.path}"></property>
+		<property name="country" value="${country}"></property>
+	</bean>
+	<bean id="utilities" class="com.bng.ussd.util.Utilities">
+		<property name="parser" ref="soapParser"></property>
+		<property name="sendUssdUrl" value="${sendUssd.url}"></property>
+	</bean>
+	<bean id="ussdReq" class="com.bng.ussd.wrapper.UssdRequest"></bean>
+	<bean id="urlHitter" class="com.bng.ussd.util.UrlHitter"></bean>
+	<bean id="soapParser" class="com.bng.ussd.util.SoapParser"></bean>
+	<bean id="jredispool" class="com.bng.ussd.redis.JRedisPool"></bean>
+	<bean id="jedis" class="com.bng.ussd.redis.JedisClientImpl"></bean>
+	<bean id="notifyUssd" class="com.bng.ussd.wrapper.NotifyUssdReception"></bean>
+	<bean id="subsResp" class="com.bng.ussd.wrapper.SubscriptionResponse"></bean>
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig"
+		lazy-init="true">
+		<property name="maxTotal" value="20" />
+		<property name="maxIdle" value="20" />
+		<property name="minIdle" value="20" />
+		<property name="testWhileIdle" value="true" />
+		<property name="minEvictableIdleTimeMillis" value="-1"></property>
+	</bean>
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool"
+		lazy-init="true">
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="127.0.0.1" />
+		<constructor-arg index="2" value="6379" />
+		<constructor-arg index="3" value="0" />
+	</bean>
+
+</beans>
