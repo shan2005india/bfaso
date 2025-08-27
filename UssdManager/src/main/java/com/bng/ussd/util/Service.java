@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -160,7 +161,14 @@ public class Service {
 					if (ussdConfiguration.getMessage().equalsIgnoreCase("back")) {
 						ussdCode = jedis.substr(request.getSessionId() + "_" + request.getMsisdn());
 						jedis.set(request.getSessionId() + "_" + request.getMsisdn(), ussdCode, timeout);
-						ussdConfiguration = properties.get(ussdCode);
+						ussdConfiguration = properties.get(PatternMatcher.matchPattern(properties.keySet(), ussdCode));
+						String sInput = Optional.ofNullable(ussdCode)
+				                .map(code -> code.contains("*") 
+				                        ? code.substring(code.lastIndexOf("*") + 1) 
+				                        : code)
+				                .orElse("");
+						request.setSubscriberInput(sInput);
+						Logger.sysLog(LogValues.info, this.getClass().getName(), "subscriber input: "+request.getSubscriberInput() +", ussdCode: " + ussdCode+" ussdConfiguration after back: "+ussdConfiguration);
 					} else if (ussdConfiguration.getMessage().equalsIgnoreCase("main")) {
 
 						utilities.cleanupRequest(request.getMsisdn(), request.getMsisdn());

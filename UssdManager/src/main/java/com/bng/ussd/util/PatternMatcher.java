@@ -78,21 +78,25 @@ public class PatternMatcher {
     private static int getPatternPriority(String pattern) {
         boolean hasUnderscore = pattern.contains("-");
         boolean hasHash = pattern.contains("~");
+        boolean ewZero = pattern.endsWith("0");
 
         if (!hasUnderscore && !hasHash) {
             return 1; // Priority 1: Exact match (most specific)
         }
+        if ((hasUnderscore || hasHash) && ewZero) {
+            return 2; // Priority 1: Exact match (most specific)
+        }
         if (hasUnderscore && !hasHash) {
-            return 2; // Priority 2: Underscore patterns
+            return 3; // Priority 2: Underscore patterns
         }
         if (hasUnderscore && hasHash) {
-            return 3; // Priority 3: Hybrid patterns are more specific than hash-only
+            return 4; // Priority 3: Hybrid patterns are more specific than hash-only
         }
         if (hasHash && !pattern.endsWith("~")) {
-            return 4; // Priority 4: Complex hash patterns (e.g., "...#*9")
+            return 5; // Priority 4: Complex hash patterns (e.g., "...#*9")
         }
         if (hasHash) {
-            return 5; // Priority 5: Simple hash patterns (e.g., "...#") (least specific)
+            return 6; // Priority 5: Simple hash patterns (e.g., "...#") (least specific)
         }
         
         return Integer.MAX_VALUE; // Should not be reached
