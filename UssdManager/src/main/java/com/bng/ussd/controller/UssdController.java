@@ -687,7 +687,7 @@ public class UssdController {
 				serviceid = utilities.checkForServiceId2(requestxml,requestxml.getSubscriberInput());
 			}
 			requestxml.setServiceid(serviceid);
-			Logger.sysLog(LogValues.info, this.getClass().getName(), msisdn+", zzz serviceid: "+serviceid+" subscriberInput: "+requestxml.getSubscriberInput());
+			Logger.sysLog(LogValues.info, this.getClass().getName(), msisdn+", zzz serviceid: "+serviceid+" subscriberInput: "+requestxml.getSubscriberInput()+", rx.ussdcode: "+requestxml.getUssdCode());
 			
 			if(requestxml.getServiceid()!=null && !requestxml.getServiceid().equals("")) utilities.checkForActiveUser(requestxml);
 			Response resp=service.processUserRequest(requestxml);

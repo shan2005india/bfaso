@@ -296,8 +296,8 @@ public class Utilities {
 		} else {
 			scode = jedis.get(rx.getSessionId() + "_" + rx.getMsisdn())+"*"+sinput;
 		}
-		
-		Logger.sysLog(LogValues.info,this.getClass().getName(),"zzz scode: "+scode+", existingUser: "+existingUser);
+		rx.setUssdCode(scode);
+		Logger.sysLog(LogValues.info,this.getClass().getName(),"zzz scode-: "+scode+", existingUser: "+existingUser);
 		
 		Properties pp = service.serviceIdMapping();
 		Logger.sysLog(LogValues.info,this.getClass().getName(),"zzz pp: "+pp);
@@ -313,9 +313,16 @@ public class Utilities {
 		boolean existingUser = jedis.exists(rx.getSessionId() + "_"
 				+ rx.getMsisdn());
 
-		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | existingUser : "+existingUser);
+		boolean checkSub = false;
 		
-		if(!existingUser){
+		Properties pp = service.serviceIdMapping();
+		for(Object p:pp.keySet()) {
+			String sKey = (String) p;
+			if(rx.getUssdCode()!=null && rx.getUssdCode().equalsIgnoreCase(sKey)) checkSub=true;
+		}
+		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | existingUser : "+existingUser+", rx.getUssdCode: "+rx.getUssdCode()+", checkSub: "+checkSub);
+		
+		if(!existingUser || checkSub){
 		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | Checking for user status for url : "+checkSubUrl);
 		String userStatus="new";
 		String checkSubResp=service.subscribehttp(rx, checkSubUrl);
@@ -338,6 +345,46 @@ public class Utilities {
 			rx.setSubscriberInput(rx.getSubscriberInput()+"_U");
 		} else if(!userStatus.equalsIgnoreCase("new") && !userStatus.equalsIgnoreCase("unsub"))
 			rx.setSubscriberInput(rx.getSubscriberInput()+"_G");
+		}
+		
+	}
+	
+	public void checkForActiveUserUssdCode(RequestXml rx) {
+		boolean existingUser = jedis.exists(rx.getSessionId() + "_"
+				+ rx.getMsisdn());
+
+		boolean checkSub = false;
+		
+		Properties pp = service.serviceIdMapping();
+		for(Object p:pp.keySet()) {
+			String sKey = (String) p;
+			if(rx.getUssdCode()!=null && rx.getUssdCode().equalsIgnoreCase(sKey)) checkSub=true;
+		}
+		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | existingUser : "+existingUser+", rx.getUssdCode: "+rx.getUssdCode()+", checkSub: "+checkSub);
+		
+		if(!existingUser || checkSub){
+		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | Checking for user status for url : "+checkSubUrl);
+		String userStatus="new";
+		String checkSubResp=service.subscribehttp(rx, checkSubUrl);
+		
+		Logger.sysLog(LogValues.info, this.getClass().getName(), rx.getMsisdn()+" | checkSubResp : "+checkSubResp);
+		
+		if(!checkSubResp.equalsIgnoreCase("error")){
+			subsResp=convertJsonStrToObject(checkSubResp, SubscriptionResponse.class);
+			String response=subsResp.getCurrentStatus();
+			userStatus=response;
+		}
+		
+		if(userStatus==null||userStatus.equalsIgnoreCase("null")) userStatus="new";
+		
+		if(userStatus.equalsIgnoreCase("active") || userStatus.equalsIgnoreCase("demo")) {
+			rx.setUssdCode(rx.getUssdCode()+"_A");
+		} else if(userStatus.equalsIgnoreCase("pending")) {
+			rx.setUssdCode(rx.getUssdCode()+"_P");
+		} else if(userStatus.equalsIgnoreCase("unsub")) {
+			rx.setUssdCode(rx.getUssdCode()+"_U");
+		} else if(!userStatus.equalsIgnoreCase("new") && !userStatus.equalsIgnoreCase("unsub"))
+			rx.setUssdCode(rx.getUssdCode()+"_G");
 		}
 		
 	}

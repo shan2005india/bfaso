@@ -23,6 +23,7 @@ public class RequestXml {
 	private String subscriberInput;
 	private String type;
 	private String serviceid;
+	private String ussdCode;
 
 	
 	public String getServiceid() {
@@ -104,6 +105,14 @@ public class RequestXml {
 		this.language = language;
 	}
 	
+	public String getUssdCode() {
+		return ussdCode;
+	}
+
+	public void setUssdCode(String ussdCode) {
+		this.ussdCode = ussdCode;
+	}
+
 	public RequestXml(){
 		
 	}

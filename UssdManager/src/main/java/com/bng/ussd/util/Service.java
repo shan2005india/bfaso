@@ -87,6 +87,9 @@ public class Service {
 		String shortCode = null;
 		int timetolive = 0;
 		Response res = new Response();
+		
+		String reqServId = request.getServiceid();
+		
 		res.setMsisdn(request.getMsisdn());
 		res.setFreeflow(
 				"<freeflowState>FB</freeflowState><freeflowCharging>N</freeflowCharging><freeflowChargingAmount>0.0</freeflowChargingAmount>");
@@ -161,6 +164,13 @@ public class Service {
 					if (ussdConfiguration.getMessage().equalsIgnoreCase("back")) {
 						ussdCode = jedis.substr(request.getSessionId() + "_" + request.getMsisdn());
 						jedis.set(request.getSessionId() + "_" + request.getMsisdn(), ussdCode, timeout);
+						
+						if(reqServId != null && !reqServId.equals("")) {
+							request.setUssdCode(ussdCode);
+							utilities.checkForActiveUserUssdCode(request);
+							ussdCode = request.getUssdCode();
+						}
+						
 						ussdConfiguration = properties.get(PatternMatcher.matchPattern(properties.keySet(), ussdCode));
 						String sInput = Optional.ofNullable(ussdCode)
 				                .map(code -> code.contains("*") 
@@ -357,6 +367,16 @@ public class Service {
 			res.setFreeflow(
 					"<freeflowState>FB</freeflowState><freeflowCharging>N</freeflowCharging><freeflowChargingAmount>0.0</freeflowChargingAmount>");
 			message = prop.getProperty("exit");
+			res.setApplicationResponse(message);
+			return res;
+		}
+		if(ussdConfiguration == null) {
+			utilities.cleanupRequest(request.getMsisdn(), request.getMsisdn());
+			res.setFreeflow(
+					"<freeflowState>FB</freeflowState><freeflowCharging>N</freeflowCharging><freeflowChargingAmount>0.0</freeflowChargingAmount>");
+			message = prop.getProperty("error");
+			res.setApplicationResponse(message);
+			return res;
 		}
 
 		String service = ussdConfiguration.getService();
