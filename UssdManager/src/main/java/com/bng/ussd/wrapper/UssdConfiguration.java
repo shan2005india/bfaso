@@ -11,6 +11,7 @@ public class UssdConfiguration {
 	private String responseurl;
 	private String contenturl;
 	private int session;
+	private String shortcode;
 	
 	public int getId() {
 		return id;
@@ -72,6 +73,12 @@ public class UssdConfiguration {
 	public void setSession(int session) {
 		this.session = session;
 	}
+	public void setShortcode(String shortcode){
+		this.shortcode=shortcode;
+	}
+	public String getShortcode(){
+		return shortcode;
+	}
 	
 	@Override
 	public String toString() {
@@ -85,7 +92,8 @@ public class UssdConfiguration {
 	            ", message='" + message + '\'' +
 	            ", responseurl='" + responseurl + '\'' +
 	            ", contenturl='" + contenturl + '\'' +
-	            ", session=" + session +
+	            ", session=" + session + '\'' +
+	            ", shortcode='" + shortcode + 
 	            '}';
 	}
 

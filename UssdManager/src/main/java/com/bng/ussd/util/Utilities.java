@@ -405,7 +405,7 @@ public class Utilities {
 	public Response utilRespUssd(String msisdn,String userInput,String sessionId,String newrequest,String serviceid) {
 		
 		String type = "pull";
-		Logger.sysLog(LogValues.info, this.getClass().getName(), msisdn+", zzz Got Request");
+		Logger.sysLog(LogValues.info, this.getClass().getName(), msisdn+", zzz Got Request - msisdn: "+msisdn+", userInput: "+userInput+", sessionId: "+sessionId+", newrequest: "+newrequest+", serviceid: "+serviceid);
 
 		if(msisdn==null||userInput==null) {
 			Logger.sysLog(LogValues.info, this.getClass().getName(), msisdn+", Mandatory parameters are missing!");
@@ -419,9 +419,9 @@ public class Utilities {
 		boolean sessionEnd=false;
 		
 		if(newrequest==null || !newrequest.equals("0")){
-			   this.cleanupRequest(msisdn,msisdn);
+			   this.cleanupRequest(msisdn,sessionId);
 		}
-		RequestXml requestxml = new RequestXml(msisdn, msisdn, "_E", userInput, type);
+		RequestXml requestxml = new RequestXml(msisdn, sessionId, "_E", userInput, type);
 		//requestxml.getRequest(msisdn, msisdn, "_E", userInput, type);
 
 		// check for postpaid

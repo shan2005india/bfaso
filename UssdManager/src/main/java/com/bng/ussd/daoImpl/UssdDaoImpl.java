@@ -46,6 +46,7 @@ public class UssdDaoImpl implements UssdDao {
 			uc.setResponseurl(rs.getString("response_url"));
 			uc.setContenturl(rs.getString("contenturl"));
 			uc.setSession(rs.getInt("session"));
+			uc.setShortcode(rs.getString("shortcode"));
 			return uc;
 		}
 	}

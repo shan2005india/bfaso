@@ -99,7 +99,8 @@ public class Service {
 		// menu to user,remove user from redis/close his session
 		if (!request.getType().startsWith("pull")) {
 			// shortcode only extracted for cdr purpose
-			shortCode = jedis.get(request.getSessionId() + "_" + request.getMsisdn()).substring(0, 3);
+//			shortCode = jedis.get(request.getSessionId() + "_" + request.getMsisdn()).substring(0, 3);
+			
 			// removing user from redis
 			jedis.remove(request.getSessionId() + "_" + request.getMsisdn());
 			Logger.sysLog(LogValues.info, this.getClass().getName(), request.getSessionId() + "_" + request.getMsisdn()
@@ -115,15 +116,14 @@ public class Service {
 				jedis.append(request.getSessionId() + "_" + request.getMsisdn(), "*" + request.getSubscriberInput());
 				Logger.sysLog(LogValues.info, this.getClass().getName(),
 						request.getSessionId() + "_" + request.getMsisdn() + ":dtmf " + request.getSubscriberInput()
-								+ " appended to saved ussdCode. ussdCode="
+								+ " --appended to saved ussdCode. ussdCode="
 								+ jedis.get(request.getSessionId() + "_" + request.getMsisdn()));
-			}
-			// adding sessionId_msisdn into redis for first time for a user
-			else {
+			} else {
+				jedis.remove(request.getSessionId() + "_" + request.getMsisdn());
 				jedis.set(request.getSessionId() + "_" + request.getMsisdn(), request.getSubscriberInput(), timeout);
 				Logger.sysLog(LogValues.info, this.getClass().getName(),
-						"user added successfully with msisdn " + request.getMsisdn() + "and session Id "
-								+ request.getSessionId() + "and ussd Code: " + request.getSubscriberInput());
+						"--user added successfully with msisdn " + request.getMsisdn() + " and session Id "
+								+ request.getSessionId() + " and ussd Code: " + request.getSubscriberInput());
 
 			}
 
@@ -181,8 +181,15 @@ public class Service {
 						Logger.sysLog(LogValues.info, this.getClass().getName(), "subscriber input: "+request.getSubscriberInput() +", ussdCode: " + ussdCode+" ussdConfiguration after back: "+ussdConfiguration);
 					} else if (ussdConfiguration.getMessage().equalsIgnoreCase("main")) {
 
+						Logger.sysLog(LogValues.info, this.getClass().getName(), "Main menu request received, cleaning up user session and showing main menu + "+ussdConfiguration);
+						if(ussdConfiguration.getShortcode() != null && ussdConfiguration.getShortcode().length() > 0) {
+							request.setUssdCode(ussdConfiguration.getShortcode());
+							ussdCode= ussdConfiguration.getShortcode();
+							Logger.sysLog(LogValues.info, this.getClass().getName(), "main menu shortcode: "+ussdConfiguration.getShortcode());
+						}
+						
 						utilities.cleanupRequest(request.getMsisdn(), request.getMsisdn());
-
+						
 						request.setNewRequest("1");
 						String scode = ussdCode;
 						scode = scode.indexOf("*") >= 0 ? scode.substring(0, scode.indexOf("*")) : scode;
@@ -197,8 +204,17 @@ public class Service {
 					}
 					message = ussdConfiguration.getMessage();
 					Logger.sysLog(LogValues.APP_DEBUG, this.getClass().getName(), "Ussd message is : " + message);
-					shortCode = jedis.get(request.getSessionId() + "_" + request.getMsisdn()).substring(0, 3);
-					Logger.sysLog(LogValues.APP_DEBUG, this.getClass().getName(), "Short code is : " + shortCode);
+					String shortCodeJd = jedis.get(request.getSessionId() + "_" + request.getMsisdn());
+					Logger.sysLog(LogValues.info, this.getClass().getName(), "Short code from redis is : " + shortCodeJd);
+					
+					if(shortCodeJd != null && shortCodeJd.length() > 3) {
+						shortCode = ussdConfiguration.getShortcode()==null?shortCodeJd.substring(0, 4):ussdConfiguration.getShortcode();
+					} else {
+						shortCode = ussdConfiguration.getShortcode();
+					}
+//					shortCode = jedis.get(request.getSessionId() + "_" + request.getMsisdn()).substring(0, 3);
+					
+					Logger.sysLog(LogValues.info, this.getClass().getName(), "Short code is : " + shortCode);
 				}
 
 				else {
@@ -403,6 +419,10 @@ public class Service {
 			}
 			Map<String, String> urlParser = new HashMap<>();
 			urlParser.put("option", optString == null ? "" : optString);
+			
+			urlParser.put("msisdn", request.getMsisdn());
+			urlParser.put("sessionid", request.getSessionId());
+			urlParser.put("userInput", request.getSubscriberInput());
 
 			contentUrl = parseProperties(contentUrl, urlParser);
 			Logger.sysLog(LogValues.info, this.getClass().getName(), optString+" parsed content url: "+contentUrl);
