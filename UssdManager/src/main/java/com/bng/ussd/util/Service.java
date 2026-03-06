@@ -154,6 +154,24 @@ public class Service {
 			else {
 				request.setServiceid(ussdConfiguration.getService());
 
+				//Check if direct_access is enabled else for new users(existingUser==null) show error message
+				int directAccess = ussdConfiguration.getDirectaccess();
+				if(directAccess == 0 && !existingUser) {
+					Logger.sysLog(LogValues.info, this.getClass().getName(), request.getSessionId() + "_"
+							+ request.getMsisdn() + "Direct access not allowed for new user");
+					shortCode = ussdCode;
+					jedis.remove(request.getSessionId() + "_" + request.getMsisdn());
+					jedis.remove("contenturl:"+request.getSessionId() +":" + request.getMsisdn());
+					message = prop.getProperty("directAccessNotAllowed");
+					Logger.sysLog(LogValues.info, this.getClass().getName(),
+							request.getSessionId() + "_" + request.getMsisdn() + "user removed successfully");
+					
+					res.setApplicationResponse(message);
+					res.setFreeflow(
+							"<freeflowState>FB</freeflowState><freeflowCharging>N</freeflowCharging><freeflowChargingAmount>0.0</freeflowChargingAmount>");
+					return res;
+				}
+				
 				if (ussdConfiguration.getResponseurl() == null) {
 					res.setFreeflow(
 							"<freeflowState>FC</freeflowState><freeflowCharging>N</freeflowCharging><freeflowChargingAmount>0.0</freeflowChargingAmount>");

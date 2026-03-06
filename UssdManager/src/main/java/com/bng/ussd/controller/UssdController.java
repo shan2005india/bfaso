@@ -488,16 +488,16 @@ public class UssdController {
 			response.setHeader("amount", "0");
 			response.setHeader("cpRefId", "0");
 			
-			if(reqType.equalsIgnoreCase("fb") && !respData.contains("<html>")) {
-				respData = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n"
-						+ "<html> \n"
-						+ " <head> \n"
-						+ " <title></title>\n"
-						+ " <meta name=\"nav\" content=\"end\"/> \n"
-						+ " </head> \n"
-						+ " <body> "+respData +"</body> \n"
-								+ "</html>";
-			}
+//			if(reqType.equalsIgnoreCase("fb") && !respData.contains("<html>")) {
+//				respData = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n"
+//						+ "<html> \n"
+//						+ " <head> \n"
+//						+ " <title></title>\n"
+//						+ " <meta name=\"nav\" content=\"end\"/> \n"
+//						+ " </head> \n"
+//						+ " <body> "+respData +"</body> \n"
+//								+ "</html>";
+//			}
 			
 		} catch(Exception e) {
 			Logger.sysLog(LogValues.error, this.getClass().getName(), msisdn+", Exception: "+coreException.GetStack(e));

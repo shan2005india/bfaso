@@ -12,6 +12,7 @@ public class UssdConfiguration {
 	private String contenturl;
 	private int session;
 	private String shortcode;
+	private int directaccess;
 	
 	public int getId() {
 		return id;
@@ -79,6 +80,12 @@ public class UssdConfiguration {
 	public String getShortcode(){
 		return shortcode;
 	}
+	public void setDirectaccess(int directaccess) {
+		this.directaccess = directaccess;
+	}
+	public int getDirectaccess() {
+		return directaccess;
+	}
 	
 	@Override
 	public String toString() {
@@ -93,7 +100,8 @@ public class UssdConfiguration {
 	            ", responseurl='" + responseurl + '\'' +
 	            ", contenturl='" + contenturl + '\'' +
 	            ", session=" + session + '\'' +
-	            ", shortcode='" + shortcode + 
+	            ", shortcode='" + shortcode + '\'' +
+	            ", directaccess=" + directaccess +
 	            '}';
 	}
 
